@@ -1,0 +1,24 @@
+@media print
+{    
+    .no-print, .no-print *
+    {
+        display: none !important;
+    }
+}
+
+body {
+	
+}
+
+.white {
+	color:white;
+}
+
+#commBall {
+	position:fixed;
+	top:0px;
+	width:50px;
+	display:block;
+	z-index:9999;
+	visibility:hidden;
+}
