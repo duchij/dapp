@@ -51,7 +51,7 @@ class main {
         );
 
         if (DBSYSTEM=="sqlite"){
-            $this->db = new sqlite("sqlite:db/".MODULE);
+            $this->db = new sqlite("sqlite:db/".MODULE.".sqlite");
         }else{
             $this->db = new mysql2($dbData);
         }

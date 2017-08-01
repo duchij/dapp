@@ -62,22 +62,23 @@ class depman extends main{
 		$res = $this->db->table($sql);
 
 		if (!$res["status"]){
+			
 			$this->tplOutError("forms/setpatient.tpl", $res["result"]);
+			
 			return false;
 		}
-
-
 
 		$this->smarty->assign("beds",$res["table"]);
 
 		$this->tplOutput("forms/setpatient.tpl");
 	}
 
+
 	public function js_setPatients($data)
 	{
 		$dtObj = new DateTime();
 
-		$yest = $dtObj->modify("-1 day");
+		$yest = $dtObj->modify("-1 year");
 		$dtStr = $dtObj->format("Y-m-d 00:00:00");
 
 		$now = new DateTime();
@@ -102,6 +103,8 @@ class depman extends main{
 		$this->log->logData($sql,false);
 
 		$structTab = $this->db->table($sql);
+		
+		
 
 		if ($structTab["status"] === FALSE){
 

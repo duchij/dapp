@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{$module|@var_dump}
 <html>
 <head>
 	<meta charset="utf-8">
@@ -62,9 +61,6 @@
 		</div>
 		<div class="three fifth">
 			{$errorMsg}
-			
-			
-			
 			{if $body}
 				{include file="forms/$module/$body"}
 				{else}

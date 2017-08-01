@@ -331,8 +331,6 @@ function afterSavePatientHospitStart(status,result,arg)
 	$("#hospit_end_"+roomBed).css("display","inline");
 	
 	$("#hospit_end_"+roomBed).val("");
-	
-	
 
 }
 
@@ -874,6 +872,15 @@ function afterSavePatientAction(status,result,arr)
 	
 }
 
+function changeDateFnc(item,dateStr){
+		
+	//var ele = $("#"+item);
+	
+	console.log(dateStr);
+	
+	
+}
+
 
 
 
@@ -896,7 +903,12 @@ function depman_init()
 						onOpen:function(selectedDates, dateStr, instance){
 							
 							instance.setDate(new Date());
+						},
+						onClose:function(selectedDates, dateStr, instance){
+							
+							changeDateFnc(instance,dateStr);
 						}
+						
 						
 						//defaultDate:new Date()
 						
