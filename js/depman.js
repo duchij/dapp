@@ -1,5 +1,7 @@
 var depMan = this;
 
+var fp = null
+
 function addRoomWithBeds()
 {
 	var table = $("#roomsBeds");
@@ -422,6 +424,8 @@ function setRoomBedPatientPlan(data,roomBed)
 	
 	// showContextMenu(items,"showMenu","setPlanStatus");
 	
+	
+	
 	for (var type in data){
 		
 		
@@ -573,20 +577,14 @@ function setMorningPlan(status,result)
 		return false;
 	}
 	
-	
-	
-	
 	for (var room in result){
 		
 		var stLn = result[room].length;
 		
-		
-		var ro =result[room];
-		
 		for (var i=0; i<stLn; i++){
+			var ro =result[room];
 			
 			var roomBed = ro[i].room+"_"+ro[i].bed;
-			
 			
 			
 			 $("#room_"+roomBed).html(ro[i].name);
@@ -878,7 +876,90 @@ function changeDateFnc(item,dateStr){
 	
 	console.log(dateStr);
 	
+	var t = new js_comunication();
 	
+	t.addRawRequest("index.php","depman/js_setMorningPlan",depMan,[{date:dateStr},"setMorningPlan2",item]);
+	
+	t.sendData();
+	
+	
+}
+
+function setMorningPlan2(status,result,item)
+{
+	
+
+	if (!status){
+		
+		pushWindow({caption:"Error",content:result});
+		return false;
+	}
+	
+	var eleId = null;
+	
+	if (item.element != undefined){
+		eleId = item.element.id;
+	}else{
+		eleId = item.context.id;
+	}
+	
+	
+	
+	
+	var tmp = eleId.split("_");
+	
+	var roomBed = tmp[1]+"_"+tmp[2];
+	
+	
+	$("#activePlannedActions_"+roomBed).html("");
+		
+	for (var room in result){
+		
+		var stLn = result[room].length;
+		
+		for (var i=0; i<stLn; i++){
+			var ro =result[room];
+			
+			var roomBed = ro[i].room+"_"+ro[i].bed;
+			
+			
+			 $("#room_"+roomBed).html(ro[i].name);
+			 
+			 $("#hstart_label_"+roomBed).html(ro[i].hospit_start);
+			 
+			 $("#patientBedId_"+roomBed).val(ro[i].bed_id);
+			 
+			 $("#addActionRoomBed_"+roomBed).css("display","inline");
+			 
+			 
+			 setRoomBedPatientPlan(ro[i].plan,roomBed);
+			
+		}
+		
+	}
+	
+}
+
+function setTodayPlan(item)
+{
+	
+	var dt = new Date();
+	
+	var dy = fp[0].formatDate(new Date(), "Y-m-d 00:01");
+	
+	var id = item.context.id;
+	
+	var tmp = id.split("_");
+	
+	
+	$("#dateForBed_"+tmp[1]+"_"+tmp[2]).val(dy);
+	
+	var t = new js_comunication();
+	
+	t.addRawRequest("index.php","depman/js_setMorningPlan",depMan,[{date:dy},"setMorningPlan2",item]);
+	
+	t.sendData();
+
 }
 
 
@@ -891,7 +972,7 @@ function depman_init()
 {
 	
 	//$.datetimepicker.setLocale("sk");
-	var fp = $(".flatpickr").flatpickr({
+	fp = $(".flatpickr").flatpickr({
 		
 						enableTime:true,
 						plugins: [new confirmDatePlugin({})],
@@ -943,6 +1024,8 @@ function depman_init()
 		
 		
 		
+		
+		
 	}
 	
 	
@@ -975,6 +1058,12 @@ function depman_init()
 			
 			showPlanAction($(this));
 			
+		});
+		
+		
+		$("[id^=setTodayPlan_").on("click",function(e){
+			
+			setTodayPlan($(this));
 		});
 		
 		

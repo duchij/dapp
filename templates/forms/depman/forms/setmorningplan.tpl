@@ -37,7 +37,9 @@
 						Koniec hospitalizácie: <input type="text" class="flatpickr inline" style="width:150px;" id="hend_{$bed.room}_{$smarty.section.inb.index}">
 						<button id="btn_hend_{$bed.room}_{$smarty.section.inb.index}" class="red button">Demitus</button>
 						</div>*}
-						Plán: <input type="text" class="flatpickr inline" style="width:150px;" id="dateForBed_{$bed.room}_{$smarty.section.inb.index}"><div id="activePlannedActions_{$bed.room}_{$smarty.section.inb.index}"></div>
+						Plán: <input type="text" class="flatpickr inline" style="width:150px;" id="dateForBed_{$bed.room}_{$smarty.section.inb.index}" title="Plan od datumu">
+						<button id="setTodayPlan_{$bed.room}_{$smarty.section.inb.index}" class="info" title="Vysetrenia pre dnesok">D</button>
+						<div id="activePlannedActions_{$bed.room}_{$smarty.section.inb.index}"></div>
 						<hr class="asphalt">
 						Pridat akciu:<select id="addActionRoomBed_{$bed.room}_{$smarty.section.inb.index}" style="width:200px; display:none;" class="inline">
 										<option value="none">-</option>

@@ -256,7 +256,6 @@ class depman extends main{
 			if (!array_key_exists('dep_id',$row)){
 				$row["dep_id"]=$_SESSION["dep_id"];
 			}
-
 		}
 
 		$res = $this->db->insert_rows("structure",$data);
@@ -289,45 +288,98 @@ class depman extends main{
 
 	public function js_setMorningPlan($data)
 	{
-		$dtObj = new DateTime();
-
-		$yest = $dtObj->modify("-1 day");
-		$dtStr = $dtObj->format("Y-m-d 00:00:00");
-
-		$now = new DateTime();
-
-		$dtEnd = $now->format("Y-m-d 23:59:59");
-
-
-		$sql = "SELECT
+		
+		if (array_key_exists("date", $data)){
+			
+			$dt = new DateTime();
+			
+			$inDate = strtotime($data["date"]);
+			
+			$dayEnd = date("Y-m-d 23:59:59",$inDate);
+			
+			$now = $data["date"];
+			
+			
+			$sql = "SELECT
 					[t_struct.name] AS [name], [t_struct.bed] AS [bed], [t_struct.room] AS [room], [t_struct.hospit_start] AS [hospit_start],
 					[t_struct.dep_id] AS [dep_id], [t_struct.id] AS [bed_id],
-
+		
 					GROUP_CONCAT([t_plan.work_type_idf], '|') AS [work_type_idf], GROUP_CONCAT([t_plan.work_type_note],'|') AS [work_type_note],
 					GROUP_CONCAT([t_plan.id], '|') AS [work_plan_id], GROUP_CONCAT([t_plan.status],'|') AS [plan_status],
-
+		
 					[t_types.work_type] AS [work_type]
-
+		
 				FROM [structure] AS [t_struct]
-
+		
 				INNER JOIN [work_plan] AS [t_plan] ON [t_struct.id] = [t_plan.struct_id]
 				INNER JOIN [work_types] AS [t_types] ON [t_plan.work_type_idf] = [t_types.work_type_idf]
-
+		
 					WHERE [t_struct.hospit_end] IS NULL
 					-- AND [t_struct.hospit_start] BETWEEN {dateStr|s} AND {dateEnd|s}
 					AND [t_struct.dep_id] = {dep_id|i}
 					AND [t_struct.status] = 'patient'
-					-- AND [t_plan.plan_date] = (SELECT DATE('now'))
+					AND [t_plan.plan_date] BETWEEN {dateStr|s} AND {dateEnd|s}
 				GROUP BY [t_types.work_type_idf]
 				ORDER BY [t_types.work_type]
 				";
-
-
-		$structArr = array(
-				"dep_id"=>$_SESSION["dep_id"],
-				"dateStr"=>$dtStr,
-				"dateEnd"=>$dtEnd,
-		);
+				
+				
+			$structArr = array(
+					"dep_id"=>$_SESSION["dep_id"],
+					"dateStr"=>$now,
+					"dateEnd"=>$dayEnd,
+			);
+			
+			
+			
+			
+		}else{
+			
+			$dtObj = new DateTime();
+			
+			//$yest = $dtObj->modify("-1 day");
+			$dtStr = $dtObj->format("Y-m-d 00:00:00");
+			
+			//$now = new DateTime();
+			
+			$dtEnd = $dtObj->format("Y-m-d 23:59:59");
+			
+			
+			$sql = "SELECT
+					[t_struct.name] AS [name], [t_struct.bed] AS [bed], [t_struct.room] AS [room], [t_struct.hospit_start] AS [hospit_start],
+					[t_struct.dep_id] AS [dep_id], [t_struct.id] AS [bed_id],
+			
+					GROUP_CONCAT([t_plan.work_type_idf], '|') AS [work_type_idf], GROUP_CONCAT([t_plan.work_type_note],'|') AS [work_type_note],
+					GROUP_CONCAT([t_plan.id], '|') AS [work_plan_id], GROUP_CONCAT([t_plan.status],'|') AS [plan_status],
+			
+					[t_types.work_type] AS [work_type]
+			
+				FROM [structure] AS [t_struct]
+			
+				INNER JOIN [work_plan] AS [t_plan] ON [t_struct.id] = [t_plan.struct_id]
+				INNER JOIN [work_types] AS [t_types] ON [t_plan.work_type_idf] = [t_types.work_type_idf]
+			
+					WHERE [t_struct.hospit_end] IS NULL
+					-- AND [t_struct.hospit_start] BETWEEN {dateStr|s} AND {dateEnd|s}
+					AND [t_struct.dep_id] = {dep_id|i}
+					AND [t_struct.status] = 'patient'
+					AND [t_plan.plan_date] BETWEEN {dateStr|s} AND {dateEnd|s}
+				GROUP BY [t_types.work_type_idf]
+				ORDER BY [t_types.work_type]
+				";
+			
+			
+			$structArr = array(
+					"dep_id"=>$_SESSION["dep_id"],
+					"dateStr"=>$dtStr,
+					"dateEnd"=>$dtEnd,
+			);
+			
+			
+			
+		}
+		
+		
 
 		$sql = $this->db->buildSql($sql,$structArr);
 		$this->log->logData($sql);
@@ -336,6 +388,7 @@ class depman extends main{
 		//$this->log->logData($sql,false);
 
 		$structTab = $this->db->table($sql);
+		//var_dump($structTab);
 
 		if ($structTab["status"] === FALSE){
 

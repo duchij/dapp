@@ -1,0 +1,12 @@
+db/depman_dump
+gdw/*
+tmp/*
+templates_c/*
+log/*
+smarty
+phpmailer/*
+tinymce/*
+settings/main.ini
+.project
+.settings
+.buildpath

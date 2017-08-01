@@ -450,7 +450,10 @@ function callProgressFnc(source,callBack, state,status)
 
 function __completedRequest(respond)
 {
-	//console.log(respond);
+	console.log(respond);
+	
+//pushWindow({caption:"lapa",content:respond});
+	
         var	resObj = JSON.parse(respond);
         
         
