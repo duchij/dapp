@@ -32,6 +32,8 @@ class poll extends main {
     	
     	//$this->pollList();
     	$this->loadUserData();
+    	$this->check_status();
+    	
     	$this->account = $_SESSION["_sf2_attributes"]["election2017data"]["account_type"];
     	//var_dump($_SESSION["_sf2_attributes"]["election2017data"]);
         
@@ -90,7 +92,7 @@ class poll extends main {
     		
     	}
     	else{
-    		var_dump($row);
+    		//var_dump($row);
     		
     		$this->tplOutError("", "Error getting user data....");
     		exit;
@@ -132,29 +134,53 @@ class poll extends main {
     	if (!isset($data["a"])){
     		$data["a"]=1;
     	}
-    	$sql1 = "
-    			SELECT 
-    			
-    				DATE('now') AS [today],
+    	if (strpos($this->account,"admin")!==FALSE){
+			$sql1="    		
+    		SELECT
+    		 
+    		DATETIME('now') AS [today],
+    		[t_polls].*,
+    		[t_pdata.status] AS [poll_status],
+    		[t_pdata.ipadre] AS [ip_adres],
+    		[t_pdata.date] AS [vote_date],
+    		[t_pdata.answer] AS [poll_answer],
+    		[t_pdata.user_hash] AS [user_hash]
+    		FROM [polls]  AS [t_polls]
+    		LEFT JOIN [poll_data] AS [t_pdata] ON [t_pdata.poll_id] = [t_polls.poll_id]
+    		WHERE
+    			[t_polls.poll_active] = 1
+    		-- AND ([t_polls.poll_start_date] >= DATE('now') OR [t_polls.poll_start_date] <= DATE('now'))
+    		-- AND [today] BETWEEN [t_polls.poll_start_date] AND [t_polls.poll_end_date]
+    		
+    		ORDER BY [t_polls.poll_start_date], [t_polls.poll_order] ASC
+    		";
+			
+			$sql = $this->db->buildSql($sql1,$data);
+    	}
+    	else{
+    		$sql1 = "
+    			SELECT
+    
+    				DATETIME('now') AS [today],
     				[t_polls].*,
-    				[t_pdata.status] AS [poll_status], 
+    				[t_pdata.status] AS [poll_status],
     				[t_pdata.ipadre] AS [ip_adres],
-    				[t_pdata.date] AS [vote_date], 
+    				[t_pdata.date] AS [vote_date],
     				[t_pdata.answer] AS [poll_answer],
     				[t_pdata.user_hash] AS [user_hash]
     			FROM [polls]  AS [t_polls]
-					LEFT JOIN [poll_data] AS [t_pdata] ON [t_pdata.poll_id] = [t_polls.poll_id] 
-				WHERE [t_polls.poll_active] = {a|i}
-    				
-    				AND ([t_polls.poll_start_date] >= DATE('now') OR [t_polls.poll_start_date] <= DATE('now'))
-    				-- AND [today] BETWEEN [t_polls.poll_start_date] AND [t_polls.poll_end_date] 
-    			
-    			ORDER BY [t_polls.poll_start_date]
+					LEFT JOIN [poll_data] AS [t_pdata] ON [t_pdata.poll_id] = [t_polls.poll_id]
+				WHERE
+    			 [t_polls.poll_active] = 1
+    		
+    				-- AND ([t_polls.poll_start_date] >= DATE('now') OR [t_polls.poll_start_date] <= DATE('now'))
+    				AND [today] BETWEEN [t_polls.poll_start_date] AND [t_polls.poll_end_date]
+    		
+    			ORDER BY [t_polls.poll_start_date], [t_polls.poll_order] ASC
     			";
-    	
-    	
-    	
-    	$sql = $this->db->buildSql($sql1,$data);
+    		
+    		$sql = $this->db->buildSql($sql1,$data);
+    	}
     	
     	$this->log->logData($sql,false);
     	
@@ -172,6 +198,12 @@ class poll extends main {
     	$user_hash = $_SESSION["_sf2_attributes"]["election2017data"]["user_hash"];
     		
     	foreach ($polls as &$poll){
+    		
+    		
+    		if ($this->is_base64($poll["poll_description"])){
+    			$poll["poll_description"] = base64_decode($poll["poll_description"]);
+    			$poll["poll_description"] = urldecode($poll["poll_description"]);
+    		}
     		
     		$poll["poll_stats"] = explode("|",$poll["poll_stats"]);
     		
@@ -324,6 +356,10 @@ class poll extends main {
     	
     	$res = $this->db->insert_row("poll_data", $pollSave,true,$parameter);
     	
+    	$this->log->logData($pollSave,false,"User vote data");
+    	$this->log->logData($res,false,"Result of user vote");
+    	
+    	
     	return $this->resultStatus($res["status"],$res);
     	
     }
@@ -365,6 +401,13 @@ class poll extends main {
     		
     		$res["poll_stats"] = explode("|",$res["poll_stats"]);
     		
+    		if ($this->is_base64($res["poll_description"])){
+    			
+    			$res["poll_description"] = base64_decode($res["poll_description"]);
+    			$res["poll_description"] = urldecode($res["poll_description"]);
+    			
+    		}
+    		
     		$this->smarty->assign("pollData",$res);
     		$this->tplOutput("poll/pollcreate.tpl",$res);
     	}else{
@@ -379,13 +422,14 @@ class poll extends main {
     
     public function getResults($data)
     {
-    	if (strpos($this->account, "admin" !== FALSE)){
+    	if (strpos($this->account, "admin") === FALSE){
     		$this->tplOutError("", "You do not have permission to check results....");
     		return;
     	}
     	
     	
     	$dt = array("pollId"=>intval($data["id"]));
+    	
     	
     	$sql = "SELECT 
     					[t_data.poll_id],[t_data.answer], COUNT([t_data.answer]) AS [count],
@@ -478,6 +522,16 @@ class poll extends main {
     	
     	$result["title"] = $res["table"][0]["title"];
     	$result["description"] = $res["table"][0]["description"];
+    	
+    	if ($this->is_base64($result["description"])){
+    		 
+    		$result["description"] = base64_decode($result["description"]);
+    		$result["description"] = urldecode($result["description"]);
+    		 
+    	}
+    	
+    	
+    	
     	$result["answer_count"] = $res["table"][0]["answer_count"];
     	
 
@@ -498,6 +552,24 @@ class poll extends main {
     {
     	//return $ip = $_SERVER['HTTP_CLIENT_IP']?$_SERVER['HTTP_CLIENT_IP']:($_SERVER['HTTP_X_FORWARDE‌​D_FOR']?$_SERVER['HTTP_X_FORWARDED_FOR']:$_SERVER['REMOTE_ADDR']);
     	return $_SERVER['REMOTE_ADDR'];
+    }
+    
+    protected function check_status()
+    {
+    		
+    	$this->log->logData("..............Check Voting status",false,"Start",false);
+    		
+    	$now  = date("Y-m-d h:i");
+    		
+    	$sql = "UPDATE [polls] SET [v_status]='closed' WHERE [poll_end_date] < '%s' AND [v_status]='open'";
+    		
+    	$sql = sprintf($sql, $now);
+    	$res = $this->db->execute($sql);
+    	//print_r($res);
+    	$this->log->logData($res,false,"status of db check.....");
+    		
+    	$this->log->logData("..............Check Voting status",false,"end",false);
+    		
     }
     
     

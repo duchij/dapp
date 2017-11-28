@@ -57,7 +57,7 @@ class main {
         }
 
 
-
+       // define('SMARTY_RESOURCE_CHAR_SET', 'UTF-8');
         $this->smarty = new Smarty();
 
         $this->mail = new PHPMailer();
@@ -761,11 +761,29 @@ class main {
 		$this->mail->From = MAIL_ACC;
 		$this->mail->FromName = "Abstrakter web";
 		//$this->mail->addAddress('josh@example.net', 'Josh Adams');  // Add a recipient
-		$this->mail->addAddress($data['email']);               // Name is optional
+
+		if (is_array($data["email"])){
+
+		    $this->mail->addAddress($data['email'][0]["email"]);
+
+		}else{
+		    $this->mail->addAddress($data["email"]);
+		}
+
+		if (isset($data["addOne"])){
+		    $this->mail->addCC($data["addOne"]);
+		}
+
+		// Name is optional
 		//$this->mail->addReplyTo($_SESSION['abstrakter']['mail_acc'], $_SESSION['abstrakter']['mail_from_name']);
 		//$this->mail->addCC($_SESSION['abstrakter']['mail_acc']);
 		//	$this->mail->addBCC('bcc@example.com');
+		if (is_array($data["email"])){
 
+		    foreach ($data["email"] as $email){
+		        $this->mail->addCC($email["email"]);
+		    }
+		}
 		$this->mail->WordWrap = 50;                                 // Set word wrap to 50 characters
 		//	$this->mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
 		//	$this->mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
@@ -773,6 +791,7 @@ class main {
 
 		$this->mail->Subject = $data["subject"];
 		$this->mail->Body    = $data["message"];
+
 		$this->mail->CharSet ="UTF-8";
 
 		$result = array("status"=>TRUE,"message"=>'');

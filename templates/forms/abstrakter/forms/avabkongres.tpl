@@ -26,6 +26,12 @@
  			<button class="blue" id="editKongresBtn_{$row.item_id}">Edituj kongress</button>
  			<button class="asphalt" id="toExcel_{$row.item_id}">Export to excel...</button>
  			<button class="yellow" id="showRegistrations_{$row.item_id}">Registrácie</button>
+ 			
+			
+ 			<button class="pink" id="sendProgram_{$row.item_id}">Pošli program</button>
+ 			
+ 			<button class="green" id="makeAbstracts_{$row.item_id}">Urob abstrakty</button>
+ 			
  			{/if}
  			
  		</div>	

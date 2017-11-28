@@ -229,6 +229,45 @@ function showRegistrations(item){
 	
 }
 
+function makeAbstracts(item){
+	var id = item.context.id;
+	var tmp = id.split("_");
+	
+	var t = new js_comunication();
+	t.addRawRequest("index.php","abstrakter/js_makeAbstracts",thisAbstrakter,[{conId:tmp[1]},"afterProgramSend"]);
+	t.sendData();
+	
+}
+
+function sendProgramToAll(item){
+	var id = item.context.id;
+	var tmp = id.split("_");
+	
+	var t = new js_comunication();
+	t.addRawRequest("index.php","abstrakter/js_sendProgramToAll",thisAbstrakter,[{conId:tmp[1]},"afterMakeAbstracts"]);
+	t.sendData();
+	
+}
+
+function afterMakeAbstracts(status,result){
+	if (!status){
+		pushWindow({caption:"Error",content:result});
+		return;
+	}
+	
+	pushWindow({caption:"Success",content:"Abstract html was done"});
+}
+
+function afterProgramSend(status,result)
+{
+	if (!status){
+		pushWindow({caption:"Error",content:result});
+		return;
+	}
+	
+	pushWindow({caption:"Success",content:"Mail was send to all"});
+}
+
 
 function initAbstrakter(){
 	
@@ -295,12 +334,20 @@ function initAbstrakter(){
 	});
 	
 	$("[id^=toExcel_]").on("click",function(e){
-			showInExcel($(this));
+		showInExcel($(this));
 	});
 	
-	$("[id^=showRegistrations_]").on("click",function(e)){
-			showRegistrations($(this));
-	}
+	$("[id^=showRegistrations_]").on("click",function(e){
+		showRegistrations($(this));
+	});
+	
+	$("[id^=sendProgram_]").on("click",function(e){
+		sendProgramToAll($(this));
+	});
+	
+	$("[id^=makeAbstracts_]").on("click",function(e){
+		makeAbstracts($(this));
+	});
 	
 }
 

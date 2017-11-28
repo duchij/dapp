@@ -66,6 +66,10 @@
 		</td>
 	</tr>
 	
+	<tr>
+		<td class="large"><strong>Order:</strong></td><td><input type="number" id="poll_order" required patern="/[1-9]+/" value="{$pollData.poll_order}" >
+		<p>Determines the position of the individual votes on the page</p>
+	</tr>
 	</table>
 	<div style="float:right;"><a href="javascript:savePoll();" class="button large green">Save</a></div>
 {* </form> *}

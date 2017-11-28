@@ -27,7 +27,11 @@ class mysql2 implements iDatabase{
 
     public function open($data){
 
+
+
         $this->dbLink = new mysqli ($data["server"],$data["user"], $data["passwd"],$data["db"]);
+
+        mysqli_set_charset($this->dbLink, "utf8");
 
 
     }

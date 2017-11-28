@@ -73,7 +73,7 @@
 					
 					
 			{else}
-				How  do you vote:
+				Your vote:
 				<input type="hidden" name="possible_answers" id="paHd_{$poll.poll_id}" value="{$poll.answer_count}">
 				<input type="hidden" name="voted_data" id="votingHd_{$poll.poll_id}" value="">
 				
@@ -103,7 +103,9 @@
 					</div>
 					{/if}
 					<hr>
-					
+					{if $poll.poll_status!="closed"}
+						<div class="error-bg">Once you vote, your vote is FINAL and can not be changed!</div>		
+					{/if}
 			</div>
 		
 		

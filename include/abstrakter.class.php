@@ -22,14 +22,26 @@ class abstrakter extends main {
          return $this->resultStatus2($res);
     }
 
+//@TODO spravit lepsie aby som to mal ze vidim ale neda sa prihlasit
     public function avabKongres()
     {
         $today = date("Y-m-d");
+        $year = date("Y");
 
-        $sql = sprintf ("    SELECT  *
+        if ($this->isAdmin()){
+
+            $sql = sprintf ("    SELECT  *
+                            FROM [kongressdata]
+                           WHERE
+                               YEAR([congress_regfrom])=%d",$year);
+        }else{
+            $sql = sprintf ("    SELECT  *
                             FROM [kongressdata]
                            WHERE
                                '%s' BETWEEN [congress_regfrom] AND [congress_reguntil] ",$today);
+        }
+
+
         //$sql = sprintf("SELECT * FROM `kongressdata` ");
 
         $sql = $this->db->buildSql($sql);
@@ -51,7 +63,7 @@ class abstrakter extends main {
             }
 
         }
-
+        $this->smarty->assign("admin",1);
         $this->smarty->assign("avab_kongres",$table);
         $this->tplOutput("forms/avabkongres.tpl");
 
@@ -432,6 +444,8 @@ class abstrakter extends main {
 
             foreach ($table as &$row){
                  $row["text_abstraktu"] = $this->decryptJsPhpBase64($row["text_abstraktu"]);
+                 $row["text_abstraktu"] = strip_tags($row["text_abstraktu"]);
+                 $row["text_abstraktu"] = html_entity_decode($row["text_abstraktu"],ENT_QUOTES, "UTF-8");
             }
 
             $firstRow = $table[0];
@@ -458,6 +472,108 @@ class abstrakter extends main {
 
 
     }
+
+
+    public function js_sendProgramToAll($data){
+
+        if (!array_key_exists("conId", $data))
+        {
+            return $this->resultStatus(FALSE, "No congress ID provided...");
+        }
+
+        $sql = "SELECT DISTINCT([t_user.email])
+                    FROM [registration] AS [t_reg]
+
+                        INNER JOIN [users] AS [t_user] ON [t_user.id] = [t_reg.user_id]
+
+                    WHERE [t_reg.congress_id] = %d";
+
+        $sql = sprintf($sql,intval($data["conId"]));
+
+        $sql=$this->db->buildSql($sql);
+
+        $res = $this->db->table($sql);
+
+        if ($res["status"] == FALSE){
+            return $this->resultStatus(FALSE, "Error in sql:".$res["result"]);
+        }
+
+
+        $email = array();
+
+        $email['subject'] = "Program kongresu";
+
+        //$this->smarty->assign("data",$res);
+        $html = $this->smarty->fetch("forms/abstrakter/mail/send_program.tpl");
+
+        //$email["email"]=array(0=>"bduchaj@gmail.com",1=>"boris.duchaj@dfnsp.sk");
+
+        //var_dump($res);
+        //exit;
+        $email["email"] = $res["result"];
+        $email["addOne"] = "smrekm1@gmail.com";
+        $email["message"] = $html;
+        // $regData['fileName'] = 'emails/registration_info.tpl';
+
+        $res1 = $this->sendMailMsg($email);
+
+        if ($res1["status"] === FALSE){
+            return $this->resultStatus(FALSE, $res1["message"]);
+        }
+
+        return $this->resultStatus("TRUE", "Mail was send");
+
+
+
+
+    }
+
+/** @todo spravit nasledne na kongresy
+ *
+ * @param unknown $data
+ * @return array($status,$result);
+ */
+    public function js_makeAbstracts($data){
+
+        $data["conId"] = 6;
+
+        if (!array_key_exists("conId", $data))
+        {
+            return $this->resultStatus(FALSE, "No congress ID provided...");
+        }
+
+        $sql = "SELECT * FROM [def_abstracts] WHERE [congress_id]=%d";
+        $sql = sprintf($sql,intval($data["conId"]));
+
+        $sql = $this->db->buildSql($sql);
+
+
+        $res = $this->db->table($sql);
+
+        if ($res["status"] == FALSE){
+            return $this->resultStatus(FALSE, "Error: ".$res["result"]);
+        }
+
+        $data = $res["result"];
+
+        $conData = array();
+
+        $conData["congress_title"] = "63. Kongres slovenských a českých detských chirurgov";
+
+        $this->smarty->assign("data",$conData);
+        $this->smarty->assign("defAbs",$data);
+
+        $html = $this->smarty->fetch("forms/abstrakter/forms/abstractBook.tpl");
+
+        $fp = fopen("tmp/abbook.html","w");
+        fwrite($fp, $html);
+        fclose($fp);
+
+        return $this->resultStatus(true, "OK");
+
+
+    }
+
 
     public function showRegistrations($data){
 

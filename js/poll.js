@@ -70,6 +70,12 @@ function savePoll()
 	
 	var answer_count = Number($("#poll_choices_count").val().trim());
 	
+	var poll_order = Number($("#poll_order").val().trim());
+	
+	if (poll_order == 0){
+		poll_order = null;
+	}
+	
 	if (answer_count == 0 || isNaN(answer_count)==true){
 		
 		pushWindow({caption:"Error",content:"Please enter number of choices..."});
@@ -99,14 +105,19 @@ function savePoll()
 	}
 	
 	
+	var description = tinymce.get("poll_description").getContent();
+	
+	description = window.btoa(encodeURIComponent(description));
+	
 	var data = {
 		poll_title:poll_title,
-		poll_description:tinymce.get("poll_description").getContent(),
+		poll_description:description,
 		poll_start_date:poll_start+" 00:00",
 		poll_end_date:poll_end+" 23:59",
 		poll_answers:getAnswers(),
 		poll_hash:poll_hash,
-		answer_count:answer_count
+		answer_count:answer_count,
+		poll_order:poll_order
 	}
 	
 	
